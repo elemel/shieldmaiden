@@ -1,35 +1,31 @@
-from blinker import signal
+from blinker import Signal
 from shieldmaiden.entity import Entity
+from shieldmaiden.group import Group
 
 
 class Engine:
     groups: dict[str, dict]
     entities: dict[int, Entity]
 
-    step: signal
-    fixed_step: signal
+    step: Signal
+    fixed_step: Signal
+    after_add_group: Signal
 
     def __init__(self) -> None:
         self.groups = {}
         self.entities = {}
 
-        self.step = signal("step")
-        self.fixed_step = signal("fixed_step")
+        self.step = Signal()
+        self.fixed_step = Signal()
+        self.after_add_group = Signal()
 
-    def add_group(self, group):
-        if group in self.groups:
-            raise Exception(f"Group already exists: {group}")
+    def get_group(self, name):
+        if name not in self.groups:
+            group = Group(name)
+            self.groups[name] = group
+            self.after_add_group.send(group)
 
-        self.groups[group] = {}
-
-    def remove_group(self, group):
-        if group not in self.groups:
-            raise Exception(f"No such group: {group}")
-
-        if self.groups[group]:
-            raise Exception(f"Group is not empty: {group}")
-
-        del self.groups[group]
+        return self.groups[name]
 
     def add_entity_tree(self, entity: Entity) -> None:
         if id(entity) in self.entities:
@@ -41,11 +37,8 @@ class Engine:
         entity.engine = self
         self.entities[id(entity)] = entity
 
-        for group in entity.groups:
-            if group not in self.groups:
-                raise Exception(f"No such group: {group}")
-
-            self.groups[group][id(entity)] = entity
+        for name in entity.group_names:
+            self.get_group(name).add_member(entity)
 
         if hasattr(entity, "step"):
             self.step.connect(entity.step)
@@ -81,11 +74,8 @@ class Engine:
         if hasattr(entity, "step"):
             self.step.disconnect(entity.step)
 
-        for group in entity.groups:
-            if group not in self.groups:
-                raise Exception(f"No such group: {group}")
+        for name in reversed(entity.group_names.keys()):
+            self.get_group(name).remove_member(entity)
 
-            del self.groups[group][id(entity)]
-
-        del self.entites[id(entity)]
+        del self.entities[id(entity)]
         entity.engine = None

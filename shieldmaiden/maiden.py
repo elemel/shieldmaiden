@@ -1,13 +1,15 @@
 import pygame
 from pygame.math import Vector2
 
-from shieldmaiden.box import Box
 from shieldmaiden.entity import Entity
-from shieldmaiden.math import sign, move_toward
+from shieldmaiden.math import sign, move_toward, box_intersects_box
 
 
 class Maiden(Entity):
-	box: Box
+	position: Vector2
+	size: Vector2
+	velocity: Vector2
+
 	color: tuple[int, int, int]
 
 	walk_speed: float = 2.0
@@ -21,11 +23,17 @@ class Maiden(Entity):
 
 	def __init__(self) -> None:
 		super().__init__()
-		self.box = Box(size=Vector2(0.5, 1.75))
-		self.color = 255, 127, 0
+		self.position = Vector2()
+		self.size = Vector2(0.5, 1.5)
 		self.velocity = Vector2()
+		self.color = 255, 127, 0
+		self.add_group_name("maiden")
 
 	def fixed_step(self, dt) -> None:
+		if self.position.y > 10.0:
+			self.engine.remove_entity_tree(self)
+			return
+
 		keys = pygame.key.get_pressed()
 		jump_input = keys[pygame.K_SPACE]
 
@@ -40,13 +48,13 @@ class Maiden(Entity):
 			self.velocity.x = move_toward(self.velocity.x, target_velocity_x, self.walk_acceleration * dt)
 
 		self.velocity.y += self.fall_acceleration * dt
-		self.box.center += self.velocity * dt
+		self.position += self.velocity * dt
 
 		self.on_ground = False
 
-		for platform in self.engine.groups["platforms"].values():
-			if self.box.intersects(platform.box):
-				self.box.center.y = platform.box.center.y - 0.5 * platform.box.size.y - 0.5 * self.box.size.y
+		for platform in self.engine.get_group("platforms").members.values():
+			if box_intersects_box(self.position, self.size, platform.position, platform.size):
+				self.position.y = platform.position.y - 0.5 * platform.size.y - 0.5 * self.size.y
 				self.velocity.y = 0.0
 				self.on_ground = True
 

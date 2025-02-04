@@ -1,34 +1,32 @@
-class Entity:
-	engine: "Engine" = None
+from __future__ import annotations
+from typing import Optional
 
-	parent: "Entity" = None
-	children: dict[int, "Entity"]
-	groups = dict[str, bool]
+
+class Entity:
+	engine: Optional[Engine] = None
+
+	parent: Optional[Entity] = None
+	children: dict[int, Entity]
+	group_names = dict[str, bool]
 
 	def __init__(self) -> None:
 		self.children = {}
-		self.groups = {}
+		self.group_names = {}
 
-	def add_to_group(self, group):
-		if group in self.groups:
-			raise Exception(f"Already added to group: {group}")
+	def add_group_name(self, name):
+		if name in self.group_names:
+			raise Exception(f"Group name was already added: {name}")
 
-		if self.engine:
-			if group not in self.engine.groups:
-				raise Exception(f"No such group: {group}")
-
-			self.engine.groups[group][id(self)] = self
-
-		self.groups[group] = True
-
-	def remove_from_group(self, group):
-		if group not in self.groups:
-			raise Exception(f"Not added to group: {group}")
+		self.group_names[name] = True
 
 		if self.engine:
-			if group not in self.engine.groups:
-				raise Exception(f"No such group: {group}")
+			self.engine.get_group(name).add_member(self)
 
-			del self.engine.groups[group][id(self)]
+	def remove_group_name(self, name):
+		if name not in self.groups:
+			raise Exception(f"Group name was never added: {name}")
 
-		del self.groups[group]
+		if self.engine:
+			self.engine.get_group(name).remove_member(self)
+
+		del self.group_names[name]

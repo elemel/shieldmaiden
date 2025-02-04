@@ -1,13 +1,15 @@
-from shieldmaiden.box import Box
+from pygame.math import Vector2
 from shieldmaiden.entity import Entity
 
 
 class Platform(Entity):
-	box: Box
+	position: Vector2
+	size: Vector2
 	color: tuple[int, int, int]
 
 	def __init__(self):
 		super().__init__()
-		self.box = Box()
+		self.position = Vector2()
+		self.size = Vector2(1.0)
 		self.color = 0, 127, 255
-		self.add_to_group("platforms")
+		self.add_group_name("platforms")
