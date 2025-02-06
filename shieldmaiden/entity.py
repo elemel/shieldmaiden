@@ -1,32 +1,54 @@
-from __future__ import annotations
-from typing import Optional
-
-
 class Entity:
-	engine: Optional[Engine] = None
+    def __init__(self, scene=None, parent=None):
+        self._scene = None
+        self._parent = None
+        self.children = {}
+        self.components = {}
 
-	parent: Optional[Entity] = None
-	children: dict[int, Entity]
-	group_names = dict[str, bool]
+        if scene:
+            self.scene = scene
 
-	def __init__(self) -> None:
-		self.children = {}
-		self.group_names = {}
+        if parent:
+            self.parent = parent
 
-	def add_group_name(self, name):
-		if name in self.group_names:
-			raise Exception(f"Group name was already added: {name}")
+    @property
+    def scene(self):
+        return self._scene
 
-		self.group_names[name] = True
+    @scene.setter
+    def scene(self, scene):
+        if scene != self.scene:
+            if self._scene:
+                if self.children:
+                    for child in reversed(list(self.children.values())):
+                        child.parent = None
 
-		if self.engine:
-			self.engine.get_group(name).add_member(self)
+                if self.components:
+                    for component in reversed(list(self.components.values())):
+                        component.entity = None
 
-	def remove_group_name(self, name):
-		if name not in self.groups:
-			raise Exception(f"Group name was never added: {name}")
+                self.parent = None
+                del self.scene.entities[id(self)]
 
-		if self.engine:
-			self.engine.get_group(name).remove_member(self)
+            self._scene = scene
 
-		del self.group_names[name]
+            if self.scene:
+                self.scene.entities[id(self)] = self
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent):
+        if parent != self.parent:
+            if self.parent:
+                del self.parent.children[id(self)]
+
+            if parent and parent.scene != self.scene:
+                self.scene = parent.scene
+
+            self._parent = parent
+
+            if self.parent:
+                self.parent.children[id(self)] = self

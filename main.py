@@ -1,10 +1,15 @@
+from __future__ import annotations
 import argparse
 import pygame
 from pygame.math import Vector2
 
-from shieldmaiden.engine import Engine
-from shieldmaiden.start import Start
-from shieldmaiden.platform import Platform
+from shieldmaiden.box_component import BoxComponent
+from shieldmaiden.entity import Entity
+from shieldmaiden.platform_component import PlatformComponent
+from shieldmaiden.scene import Scene
+from shieldmaiden.script_component import ScriptComponent
+from shieldmaiden.start_script import StartScript
+from shieldmaiden.transform_component import TransformComponent
 
 
 def main():
@@ -20,16 +25,21 @@ def main():
     screen = pygame.display.set_mode((args.width, args.height), pygame.RESIZABLE | pygame.SCALED, vsync=1)
     pygame.display.set_caption("Shieldmaiden")
 
-    engine = Engine()
-    engine.after_add_group.connect(after_add_group)
+    scene = Scene()
 
-    platform = Platform()
-    platform.size.update(5.0, 0.5)
-    engine.add_entity_tree(platform)
+    scene.components[BoxComponent] = {}
+    scene.components[PlatformComponent] = {}
+    scene.components[ScriptComponent] = {}
+    scene.components[TransformComponent] = {}
 
-    start = Start()
-    start.position.update(0.0, -1.125)
-    engine.add_entity_tree(start)
+    platform = Entity(scene)
+    TransformComponent(platform)
+    BoxComponent(platform, Vector2(5.0, 0.5), (0, 127, 255))
+    PlatformComponent(platform)
+
+    start = Entity(scene)
+    TransformComponent(start, Vector2(0.0, -1.0))
+    ScriptComponent(start, StartScript())
 
     running = True
     clock = pygame.time.Clock()
@@ -46,20 +56,24 @@ def main():
         screen.fill((0, 0, 0))
 
         fixed_dt = 1 / args.fps
-        engine.fixed_step.send(fixed_dt)
+
+        for script_component in list(scene.components[ScriptComponent].values()):
+            if script_component.entity and script_component.script and hasattr(script_component.script, "fixed_step"):
+                script_component.script.fixed_step(fixed_dt)
 
         camera_scale = 0.1 * screen_height
 
-        for entity in engine.entities.values():
-            if hasattr(entity, "position") and hasattr(entity, "size") and hasattr(entity, "color"):
-                rect_x = 0.5 * screen_width + camera_scale * (entity.position.x - 0.5 * entity.size.x)
-                rect_y = 0.5 * screen_height + camera_scale * (entity.position.y - 0.5 * entity.size.y)
+        for box_component in scene.components[BoxComponent].values():
+            transform_component = box_component.entity.components[TransformComponent]
 
-                rect_width = camera_scale * entity.size.x
-                rect_height = camera_scale * entity.size.y
+            rect_x = 0.5 * screen_width + camera_scale * (transform_component.position.x - 0.5 * box_component.size.x)
+            rect_y = 0.5 * screen_height + camera_scale * (transform_component.position.y - 0.5 * box_component.size.y)
 
-                rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
-                pygame.draw.rect(screen, entity.color, rect)
+            rect_width = camera_scale * box_component.size.x
+            rect_height = camera_scale * box_component.size.y
+
+            rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
+            pygame.draw.rect(screen, box_component.color, rect)
 
         # Update the display
         pygame.display.flip()
@@ -67,19 +81,6 @@ def main():
         clock.tick(args.fps)
 
     pygame.quit()
-
-
-def after_add_group(group):
-    print(f"Added group: {group.name}")
-
-    def after_add_member(entity):
-        print(f"Added entity @{id(entity)} to the {group.name} group")
-
-    def before_remove_member(entity):
-        print(f"Removing entity @{id(entity)} from the {group.name} group")
-
-    group.after_add_member.connect(after_add_member, weak=False)
-    group.before_remove_member.connect(before_remove_member, weak=False)
 
 
 if __name__ == "__main__":
