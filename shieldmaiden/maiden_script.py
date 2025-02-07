@@ -17,7 +17,7 @@ class MaidenScript(Script):
         self.walk_speed = 2.0
         self.walk_acceleration = 10.0
 
-        self. jump_speed = 5.0
+        self.jump_speed = 5.0
         self.fall_acceleration = 10.0
 
         self.jump_input = False
@@ -26,10 +26,6 @@ class MaidenScript(Script):
     def fixed_step(self, dt):
         transform_component = self.component.entity.components[TransformComponent]
         box_component = self.component.entity.components[BoxComponent]
-
-        if transform_component.position.y > 10.0:
-            self.component.entity.scene = None
-            return
 
         keys = pygame.key.get_pressed()
         jump_input = keys[pygame.K_SPACE]
@@ -49,7 +45,7 @@ class MaidenScript(Script):
 
         self.on_ground = False
 
-        for platform_component in self.component.entity.scene.components[PlatformComponent].values():
+        for platform_component in self.component.entity.scene.component_columns[PlatformComponent].values():
             platform_transform_component = platform_component.entity.components[TransformComponent]
             platform_box_component = platform_component.entity.components[BoxComponent]
 

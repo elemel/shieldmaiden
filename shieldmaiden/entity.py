@@ -4,12 +4,8 @@ class Entity:
         self._parent = None
         self.children = {}
         self.components = {}
-
-        if scene:
-            self.scene = scene
-
-        if parent:
-            self.parent = parent
+        self.scene = scene
+        self.parent = parent
 
     @property
     def scene(self):
