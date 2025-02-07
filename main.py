@@ -25,7 +25,7 @@ def main():
     args = parser.parse_args()
     pygame.init()
 
-    screen = pygame.display.set_mode((args.width, args.height), pygame.RESIZABLE | pygame.SCALED, vsync=1)
+    window = pygame.display.set_mode((args.width, args.height), pygame.RESIZABLE | pygame.SCALED, vsync=1)
     pygame.display.set_caption("Shieldmaiden")
 
     scene = Scene()
@@ -64,11 +64,10 @@ def main():
             if event.type == pygame.QUIT:  # Handle window close
                 running = False
 
-        screen_width = screen.get_width()
-        screen_height = screen.get_height()
+        window_width = window.get_width()
+        window_height = window.get_height()
 
-        # Fill the screen with a color (optional)
-        screen.fill((0, 0, 0))
+        window.fill((0, 0, 0))
 
         fixed_dt = 1 / args.fps
 
@@ -79,19 +78,19 @@ def main():
         [camera_component] = scene.component_columns[CameraComponent].values()
         camera_transform_component = camera_component.entity.components[TransformComponent]
         camera_position = camera_transform_component.position
-        camera_scale = 0.1 * screen_height
+        camera_scale = 0.1 * window_height
 
         for box_component in scene.component_columns[BoxComponent].values():
             transform_component = box_component.entity.components[TransformComponent]
 
-            rect_x = 0.5 * screen_width + camera_scale * (transform_component.position.x - 0.5 * box_component.size.x - camera_position.x)
-            rect_y = 0.5 * screen_height + camera_scale * (transform_component.position.y - 0.5 * box_component.size.y - camera_position.y)
+            rect_x = 0.5 * window_width + camera_scale * (transform_component.position.x - 0.5 * box_component.size.x - camera_position.x)
+            rect_y = 0.5 * window_height + camera_scale * (transform_component.position.y - 0.5 * box_component.size.y - camera_position.y)
 
             rect_width = camera_scale * box_component.size.x
             rect_height = camera_scale * box_component.size.y
 
             rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
-            pygame.draw.rect(screen, box_component.color, rect)
+            pygame.draw.rect(window, box_component.color, rect)
 
         # Update the display
         pygame.display.flip()
