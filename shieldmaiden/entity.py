@@ -1,20 +1,20 @@
 class Entity:
-    def __init__(self, scene=None, parent=None):
-        self._scene = None
+    def __init__(self, engine=None, parent=None):
+        self._engine = None
         self._parent = None
         self.children = {}
         self.components = {}
-        self.scene = scene
+        self.engine = engine
         self.parent = parent
 
     @property
-    def scene(self):
-        return self._scene
+    def engine(self):
+        return self._engine
 
-    @scene.setter
-    def scene(self, scene):
-        if scene != self.scene:
-            if self._scene:
+    @engine.setter
+    def engine(self, engine):
+        if engine != self.engine:
+            if self._engine:
                 if self.children:
                     for child in reversed(list(self.children.values())):
                         child.parent = None
@@ -24,12 +24,12 @@ class Entity:
                         component.entity = None
 
                 self.parent = None
-                del self.scene.entities[id(self)]
+                del self.engine.entities[id(self)]
 
-            self._scene = scene
+            self._engine = engine
 
-            if self.scene:
-                self.scene.entities[id(self)] = self
+            if self.engine:
+                self.engine.entities[id(self)] = self
 
     @property
     def parent(self):
@@ -41,8 +41,8 @@ class Entity:
             if self.parent:
                 del self.parent.children[id(self)]
 
-            if parent and parent.scene != self.scene:
-                self.scene = parent.scene
+            if parent and parent.engine != self.engine:
+                self.engine = parent.engine
 
             self._parent = parent
 

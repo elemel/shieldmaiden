@@ -9,7 +9,7 @@ from shieldmaiden.entity import Entity
 from shieldmaiden.goal_component import GoalComponent
 from shieldmaiden.level_script import LevelScript
 from shieldmaiden.platform_component import PlatformComponent
-from shieldmaiden.scene import Scene
+from shieldmaiden.engine import Engine
 from shieldmaiden.script_component import ScriptComponent
 from shieldmaiden.start_component import StartComponent
 from shieldmaiden.transform_component import TransformComponent
@@ -28,31 +28,31 @@ def main():
     window = pygame.display.set_mode((args.width, args.height), pygame.RESIZABLE | pygame.SCALED, vsync=1)
     pygame.display.set_caption("Shieldmaiden")
 
-    scene = Scene()
+    engine = Engine()
 
-    scene.add_component_type(BoxComponent)
-    scene.add_component_type(CameraComponent)
-    scene.add_component_type(GoalComponent)
-    scene.add_component_type(PlatformComponent)
-    scene.add_component_type(ScriptComponent)
-    scene.add_component_type(StartComponent)
-    scene.add_component_type(TransformComponent)
+    engine.add_component_type(BoxComponent)
+    engine.add_component_type(CameraComponent)
+    engine.add_component_type(GoalComponent)
+    engine.add_component_type(PlatformComponent)
+    engine.add_component_type(ScriptComponent)
+    engine.add_component_type(StartComponent)
+    engine.add_component_type(TransformComponent)
 
-    level = Entity(scene)
+    level = Entity(engine)
     TransformComponent(level)
     BoxComponent(level, Vector2(10.0, 10.0), (31, 31, 31))
     ScriptComponent(level, LevelScript())
 
-    camera = Entity(scene)
+    camera = Entity(engine)
     TransformComponent(camera)
     CameraComponent(camera)
 
-    platform = Entity(scene)
+    platform = Entity(engine)
     TransformComponent(platform)
     BoxComponent(platform, Vector2(5.0, 0.5), (0, 127, 255))
     PlatformComponent(platform)
 
-    start = Entity(scene)
+    start = Entity(engine)
     TransformComponent(start, Vector2(0.0, -1.0))
     StartComponent(start)
 
@@ -71,16 +71,16 @@ def main():
 
         fixed_dt = 1 / args.fps
 
-        for script_component in list(scene.component_columns[ScriptComponent].values()):
+        for script_component in list(engine.component_columns[ScriptComponent].values()):
             if script_component.entity and script_component.script and hasattr(script_component.script, "fixed_step"):
                 script_component.script.fixed_step(fixed_dt)
 
-        [camera_component] = scene.component_columns[CameraComponent].values()
+        [camera_component] = engine.component_columns[CameraComponent].values()
         camera_transform_component = camera_component.entity.components[TransformComponent]
         camera_position = camera_transform_component.position
         camera_scale = 0.1 * window_height
 
-        for box_component in scene.component_columns[BoxComponent].values():
+        for box_component in engine.component_columns[BoxComponent].values():
             transform_component = box_component.entity.components[TransformComponent]
 
             rect_x = 0.5 * window_width + camera_scale * (transform_component.position.x - 0.5 * box_component.size.x - camera_position.x)

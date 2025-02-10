@@ -17,7 +17,7 @@ class LevelScript(Script):
         self.maiden = None
 
     def fixed_step(self, dt):
-        if self.maiden and self.maiden.scene:
+        if self.maiden and self.maiden.engine:
             transform_component = self.component.entity.components[TransformComponent]
             box_component = self.component.entity.components[BoxComponent]
 
@@ -25,22 +25,22 @@ class LevelScript(Script):
             maiden_box_component = self.maiden.components[BoxComponent]
 
             if not box_intersects_box(maiden_transform_component.position, maiden_box_component.size, transform_component.position, box_component.size):
-                self.maiden.scene = None
+                self.maiden.engine = None
                 self.maiden = None
 
-        if self.maiden is None or self.maiden.scene is None:
-            [start_component] = self.component.entity.scene.component_columns[StartComponent].values()
+        if self.maiden is None or self.maiden.engine is None:
+            [start_component] = self.component.entity.engine.component_columns[StartComponent].values()
 
             if start_component:
                 start_transform_component = start_component.entity.components[TransformComponent]
 
-                self.maiden = Entity(self.component.entity.scene)
+                self.maiden = Entity(self.component.entity.engine)
                 TransformComponent(self.maiden, start_transform_component.position)
                 BoxComponent(self.maiden, Vector2(0.5, 1.5), (255, 127, 0))
                 ScriptComponent(self.maiden, MaidenScript())
 
-        if self.maiden and self.maiden.scene:
-            [camera_component] = self.component.entity.scene.component_columns[CameraComponent].values()
+        if self.maiden and self.maiden.engine:
+            [camera_component] = self.component.entity.engine.component_columns[CameraComponent].values()
             camera_transform_component = camera_component.entity.components[TransformComponent]
             maiden_transform_component = self.maiden.components[TransformComponent]
             camera_transform_component.position.update(maiden_transform_component.position)

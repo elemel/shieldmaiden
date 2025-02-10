@@ -1,4 +1,4 @@
-class Scene:
+class Engine:
     def __init__(self):
         # {domain_type: domain}
         self.domains = {}

@@ -45,7 +45,7 @@ class MaidenScript(Script):
 
         self.on_ground = False
 
-        for platform_component in self.component.entity.scene.component_columns[PlatformComponent].values():
+        for platform_component in self.component.entity.engine.component_columns[PlatformComponent].values():
             platform_transform_component = platform_component.entity.components[TransformComponent]
             platform_box_component = platform_component.entity.components[BoxComponent]
 
